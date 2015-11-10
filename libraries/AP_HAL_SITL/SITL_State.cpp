@@ -67,7 +67,7 @@ void SITL_State::_sitl_setup(void)
     _rcout_addr.sin_family = AF_INET;
     _rcout_addr.sin_port = htons(_rcout_port);
     inet_pton(AF_INET, _fdm_address, &_rcout_addr.sin_addr);
-
+    printf("HARD CODE socket adr %d port %d \n",_rcout_addr.sin_addr,_rcout_addr.sin_port);
 #ifndef HIL_MODE
     _setup_fdm();
 #endif
@@ -119,6 +119,7 @@ void SITL_State::_setup_fdm(void)
     sockaddr.sin_family = AF_INET;
 
     _sitl_fd = socket(AF_INET, SOCK_DGRAM, 0);
+    _sitl_sock = socket(AF_INET, SOCK_DGRAM,0);
     if (_sitl_fd == -1) {
         fprintf(stderr, "SITL: socket failed - %s\n", strerror(errno));
         exit(1);
@@ -133,8 +134,20 @@ void SITL_State::_setup_fdm(void)
                 (unsigned)ntohs(sockaddr.sin_port), strerror(errno));
         exit(1);
     }
-
+    ret = bind(_sitl_sock,(struct sockaddr *)&_rcout_addr, sizeof(_rcout_addr));
+	if (ret == -1) {
+		fprintf(stderr, "HARDCODE SITL: bind failed on port %u - %s\n",
+		     (unsigned)ntohs(_rcout_addr.sin_port), strerror(errno));
+	}
+	ret = connect(_sitl_sock, (struct sockaddr *)&_rcout_addr, sizeof(_rcout_addr));
+	    if (ret == -1) {
+	        fprintf(stderr, "connect failed on port %u - %s\n",
+	                (unsigned)ntohs(_rcout_addr.sin_port),
+	                strerror(errno));
+	    }
+	    printf("HARDCODE Sitl sock = %d \n",_sitl_sock);
     HALSITL::SITLUARTDriver::_set_nonblocking(_sitl_fd);
+    HALSITL::SITLUARTDriver::_set_nonblocking(_sitl_sock);
 }
 #endif
 
@@ -147,7 +160,7 @@ void SITL_State::_fdm_input_step(void)
     static uint32_t last_pwm_input = 0;
     fd_set fds;
     struct timeval tv;
-
+    printf("HARDCODE FDM STEP \n");
     if (sitl_model != NULL) {
         _fdm_input_local();
     } else {
@@ -236,7 +249,7 @@ void SITL_State::_fdm_input(void)
     bool got_fg_input = false;
 
     size = recv(_sitl_fd, &d, sizeof(d), MSG_DONTWAIT);
-    printf("HARDCODE fd %d \n",_sitl_fd);
+   // printf("HARDCODE fd %d \n",_sitl_fd);
 
     switch (size) {
     case 148:
@@ -311,8 +324,9 @@ void SITL_State::_fdm_input_local(void)
 
     // construct servos structure for FDM
     _simulator_servos(input);
+    _send_servos_output(input);
 
-    // update the model
+    // update the model TODO Local model
     sitl_model->update(input);
 
     // get FDM output from the model
@@ -500,6 +514,53 @@ void SITL_State::_simulator_output(bool synthetic_clock_mode)
     }
 
     sendto(_sitl_fd, (void*)&control, sizeof(control), MSG_DONTWAIT, (const sockaddr *)&_rcout_addr, sizeof(_rcout_addr));
+}
+
+void SITL_State::_send_servos_output(Aircraft::sitl_input &input)
+{
+	struct {
+	        uint16_t pwm[SITL_NUM_CHANNELS];
+	        uint16_t speed, direction, turbulance;
+	 } control;
+	 if (_sitl == NULL) {
+	         return;
+	     }
+
+	     memcpy(control.pwm, input.servos, sizeof(control.pwm));
+
+	     // setup wind control
+	     float wind_speed = _sitl->wind_speed * 100;
+	     float altitude = _barometer?_barometer->get_altitude():0;
+	     if (altitude < 0) {
+	         altitude = 0;
+	     }
+	     if (altitude < 60) {
+	         wind_speed *= altitude / 60.0f;
+	     }
+	     control.speed      = wind_speed;
+	     float direction = _sitl->wind_direction;
+	     if (direction < 0) {
+	         direction += 360;
+	     }
+	     control.direction  = direction * 100;
+	     control.turbulance = _sitl->wind_turbulance * 100;
+
+	     // zero the wind for the first 15s to allow pitot calibration
+	     if (hal.scheduler->millis() < 15000) {
+	         control.speed = 0;
+	     }
+	     // OUTPUT
+
+	     int a = 10;
+	     int size = sendto(_sitl_sock, (void*)&a, sizeof(a), MSG_DONTWAIT, (const sockaddr *)&_rcout_addr, sizeof(_rcout_addr));
+	     printf("HARDCODE send size %d a = %d\n",size,a);
+	     int b;
+	     size =  recv(_sitl_sock, &b, sizeof(b), MSG_DONTWAIT);
+
+	     printf("HARDCODE recived size %d b = %d \n",size,b);
+	     printf("HARDCODE control size %d\n",sizeof(control));
+
+
 }
 
 // generate a random float between -1 and 1

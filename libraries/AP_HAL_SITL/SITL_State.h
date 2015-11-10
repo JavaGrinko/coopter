@@ -110,6 +110,7 @@ private:
     void _fdm_input(void);
     void _fdm_input_local(void);
     void _simulator_servos(Aircraft::sitl_input &input);
+    void _send_servos_output(Aircraft::sitl_input &input);
     void _simulator_output(bool synthetic_clock_mode);
     void _apply_servo_filter(float deltat);
     uint16_t _airspeed_sensor(float airspeed);
@@ -142,6 +143,7 @@ private:
     AP_Terrain *_terrain;
 
     int _sitl_fd;
+    int _sitl_sock;
     SITL *_sitl;
     uint16_t _rcout_port;
     uint16_t _simin_port;
