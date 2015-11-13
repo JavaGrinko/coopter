@@ -252,9 +252,7 @@ void Aircraft::fill_fdm(struct sitl_fdm &fdm) const
 //	printf("HARDCODE sock %d \n",sock);
     fdm.timestamp_us = time_now_us;
     fdm.latitude  = location.lat * 1.0e-7;
-    printf("HARDCODE lat %f \n",fdm.latitude );
     fdm.longitude = location.lng * 1.0e-7;
-    printf("HARDCODE lng %f \n",fdm.longitude );
     fdm.altitude  = location.alt * 1.0e-2;
     fdm.heading   = degrees(atan2f(velocity_ef.y, velocity_ef.x));
     fdm.speedN    = velocity_ef.x;

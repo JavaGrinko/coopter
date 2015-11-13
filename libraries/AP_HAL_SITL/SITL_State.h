@@ -131,6 +131,8 @@ private:
     uint8_t _instance;
     uint16_t _base_port;
     struct sockaddr_in _rcout_addr;
+    struct sockaddr_in _my_in_addr;
+    struct sockaddr_in _my_out_addr;
     pid_t _parent_pid;
     uint32_t _update_count;
     bool _motors_on;
@@ -143,9 +145,13 @@ private:
     AP_Terrain *_terrain;
 
     int _sitl_fd;
-    int _sitl_sock;
+    int _my_sitl_in_sock;
+    int _my_sitl_out_sock;
     SITL *_sitl;
+
     uint16_t _rcout_port;
+    uint16_t _my_in_port;
+    uint16_t _my_out_port;
     uint16_t _simin_port;
     float _current;
 

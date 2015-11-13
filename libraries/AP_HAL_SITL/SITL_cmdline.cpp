@@ -94,6 +94,8 @@ void SITL_State::_parse_command_line(int argc, char * const argv[])
     _base_port = 5760;
     _rcout_port = 5502;
     _simin_port = 5501;
+    _my_in_port = 7503;
+    _my_out_port = 7502;
     _fdm_address = "127.0.0.1";
     _client_address = NULL;
     _instance = 0;
@@ -141,6 +143,7 @@ void SITL_State::_parse_command_line(int argc, char * const argv[])
             _base_port  += _instance * 10;
             _rcout_port += _instance * 10;
             _simin_port += _instance * 10;
+            _my_in_port += _instance * 10;
         }
         break;
         case 'P':

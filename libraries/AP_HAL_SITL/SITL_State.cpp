@@ -67,7 +67,15 @@ void SITL_State::_sitl_setup(void)
     _rcout_addr.sin_family = AF_INET;
     _rcout_addr.sin_port = htons(_rcout_port);
     inet_pton(AF_INET, _fdm_address, &_rcout_addr.sin_addr);
-    printf("HARD CODE socket adr %d port %d \n",_rcout_addr.sin_addr,_rcout_addr.sin_port);
+
+    _my_in_addr.sin_family = AF_INET;
+    _my_in_addr.sin_port = htons(_my_in_port);
+    inet_pton(AF_INET, _fdm_address, &_my_in_addr.sin_addr);
+
+    _my_out_addr.sin_family = AF_INET;
+    _my_out_addr.sin_port = htons(_my_out_port);
+    inet_pton(AF_INET, _fdm_address, &_my_out_addr.sin_addr);
+
 #ifndef HIL_MODE
     _setup_fdm();
 #endif
@@ -108,6 +116,7 @@ void SITL_State::_sitl_setup(void)
 void SITL_State::_setup_fdm(void)
 {
     int one=1, ret;
+    int two=1,three =1;
     struct sockaddr_in sockaddr;
 
     memset(&sockaddr,0,sizeof(sockaddr));
@@ -119,7 +128,8 @@ void SITL_State::_setup_fdm(void)
     sockaddr.sin_family = AF_INET;
 
     _sitl_fd = socket(AF_INET, SOCK_DGRAM, 0);
-    _sitl_sock = socket(AF_INET, SOCK_DGRAM,0);
+    _my_sitl_in_sock = socket(AF_INET, SOCK_DGRAM,0);
+    _my_sitl_out_sock = socket(AF_INET, SOCK_DGRAM,0);
     if (_sitl_fd == -1) {
         fprintf(stderr, "SITL: socket failed - %s\n", strerror(errno));
         exit(1);
@@ -127,27 +137,36 @@ void SITL_State::_setup_fdm(void)
 
     /* we want to be able to re-use ports quickly */
     setsockopt(_sitl_fd, SOL_SOCKET, SO_REUSEADDR, &one, sizeof(one));
+  //  setsockopt(_my_sitl_in_sock, SOL_SOCKET, SO_REUSEADDR, &two, sizeof(two));
+    setsockopt(_my_sitl_out_sock, SOL_SOCKET, SO_REUSEADDR, &three, sizeof(two));
 
     ret = bind(_sitl_fd, (struct sockaddr *)&sockaddr, sizeof(sockaddr));
     if (ret == -1) {
         fprintf(stderr, "SITL: bind failed on port %u - %s\n",
                 (unsigned)ntohs(sockaddr.sin_port), strerror(errno));
+
         exit(1);
     }
-    ret = bind(_sitl_sock,(struct sockaddr *)&_rcout_addr, sizeof(_rcout_addr));
-	if (ret == -1) {
-		fprintf(stderr, "HARDCODE SITL: bind failed on port %u - %s\n",
-		     (unsigned)ntohs(_rcout_addr.sin_port), strerror(errno));
-	}
-	ret = connect(_sitl_sock, (struct sockaddr *)&_rcout_addr, sizeof(_rcout_addr));
-	    if (ret == -1) {
-	        fprintf(stderr, "connect failed on port %u - %s\n",
-	                (unsigned)ntohs(_rcout_addr.sin_port),
-	                strerror(errno));
-	    }
-	    printf("HARDCODE Sitl sock = %d \n",_sitl_sock);
+    ret = bind(_my_sitl_in_sock,(struct sockaddr *)&_my_in_addr, sizeof(_my_in_addr));
+   	if (ret == -1) {
+   		fprintf(stderr, "HARDCODE SITL: bind failed on port %u - %s\n",
+   		     (unsigned)ntohs(_my_in_addr.sin_port), strerror(errno));
+   	}
+  //  ret = bind(_my_sitl_out_sock,(struct sockaddr *)&_my_out_addr, sizeof(_my_out_addr));
+   //   	if (ret == -1) {
+   //   		fprintf(stderr, "HARDCODE SITL: bind failed on port %u - %s\n",
+   //   		     (unsigned)ntohs(_my_out_addr.sin_port), strerror(errno));
+  //  }
+   	ret = connect(_my_sitl_in_sock, (struct sockaddr *)&_my_in_addr, sizeof(_my_in_addr));
+   	    if (ret == -1) {
+   	        fprintf(stderr, "connect failed on port %u - %s\n",
+   	                (unsigned)ntohs(_my_in_addr.sin_port),
+   	                strerror(errno));
+   	    }
+
     HALSITL::SITLUARTDriver::_set_nonblocking(_sitl_fd);
-    HALSITL::SITLUARTDriver::_set_nonblocking(_sitl_sock);
+    HALSITL::SITLUARTDriver::_set_nonblocking(_my_sitl_in_sock);
+    HALSITL::SITLUARTDriver::_set_nonblocking(_my_sitl_out_sock);
 }
 #endif
 
@@ -327,11 +346,42 @@ void SITL_State::_fdm_input_local(void)
     _send_servos_output(input);
 
     // update the model TODO Local model
-    sitl_model->update(input);
+     sitl_model->update(input);
+
 
     // get FDM output from the model
-    sitl_model->fill_fdm(_sitl->state);
 
+    sitl_model->fill_fdm(_sitl->state);
+    sitl_fdm my_fdm;
+    struct {
+            uint16_t pwm[SITL_NUM_CHANNELS];
+            uint16_t speed, direction, turbulance;
+        } control;
+   // int size =  recv(_my_sitl_in_sock, &control, sizeof(control), MSG_DONTWAIT);
+     //   socklen_t len = sizeof(_my_in_addr);
+     //   int a;
+     //   int size = recvfrom(_my_sitl_in_sock,&a,sizeof(a),0,(sockaddr *) &_my_out_addr,&len);
+       // int size = recv(_my_sitl_in_sock,&control,sizeof(control),MSG_DONTWAIT);
+      //  printf("HARDCODE recive %d a = %d adr %s:%d\n",size,a,inet_ntoa(_my_out_addr.sin_addr),ntohs(_my_out_addr.sin_port));
+         int b;
+         int size = 0;// recv(_my_sitl_in_sock, &b, sizeof(b), MSG_DONTWAIT);
+         printf("HARDCODE recived size %d b = %d\n",size,b);
+         b = 0;
+         socklen_t len = sizeof(_my_in_addr);
+         size = recvfrom(_my_sitl_in_sock,&b,sizeof(b),MSG_DONTWAIT,(struct sockaddr *)&_my_in_addr, &len);
+         printf("HARDCODE recived size %d b = %d\n",size,b);
+
+  //  printf("HARDCODE my_fdm = %d \n %d \n %f,%f,%f \n % f\n %f,%f,%f\n %f,%f,%f\n %f,%f,%f\n %f,%f,%f\n  %f,%f,%f\n %f\n ",size,
+  //  		my_fdm.timestamp_us,
+  //          my_fdm.latitude, my_fdm.longitude, // degrees
+ //           my_fdm.altitude,  // MSL
+  //          my_fdm.heading,   // degrees
+ //           my_fdm.speedN, my_fdm.speedE, my_fdm.speedD, // m/s
+ //           my_fdm.xAccel, my_fdm.yAccel, my_fdm.zAccel,       // m/s/s in body frame
+ //           my_fdm.rollRate, my_fdm.pitchRate, my_fdm.yawRate, // degrees/s/s in body frame
+ //           my_fdm.rollDeg, my_fdm.pitchDeg, my_fdm.yawDeg,   // euler angles, degrees
+ //           my_fdm.airspeed // m/s
+  //  );
     if (gimbal != NULL) {
         gimbal->update();
     }
@@ -551,16 +601,29 @@ void SITL_State::_send_servos_output(Aircraft::sitl_input &input)
 	     }
 	     // OUTPUT
 
+
+	     int size = sendto(_my_sitl_out_sock, (void*)&control, sizeof(control), MSG_DONTWAIT, (const sockaddr *)&_my_out_addr, sizeof(_my_out_addr));
+
+	     //size =  recv(_sitl_sock, &control, sizeof(control), MSG_DONTWAIT);
+	    // printf("HARDCODE recived size %d \n",size);
+	     //   int b;
+	 //    size =  recv(_my_sitl_out_sock, &control, sizeof(control), MSG_DONTWAIT);
+	  //   printf("HARDCODE recived size %d b = %d \n",size,control.speed);
+
+	     for (int i = 0 ; i < SITL_NUM_CHANNELS; i++)
+	     {
+	    	 printf("HARDCODE control pwm %d = %d\n",i,control.pwm[i]);
+	     }
+	     printf("HARDCODE control speed = %d\n",control.speed);
+	     printf("HARDCODE control direction = %d\n",control.direction);
+	     printf("HARDCODE control turbulance = %d\n",control.turbulance);
+
 	     int a = 10;
-	     int size = sendto(_sitl_sock, (void*)&a, sizeof(a), MSG_DONTWAIT, (const sockaddr *)&_rcout_addr, sizeof(_rcout_addr));
-	     printf("HARDCODE send size %d a = %d\n",size,a);
-	     int b;
-	     size =  recv(_sitl_sock, &b, sizeof(b), MSG_DONTWAIT);
-
-	     printf("HARDCODE recived size %d b = %d \n",size,b);
-	     printf("HARDCODE control size %d\n",sizeof(control));
-
-
+	  //   size = sendto(_my_sitl_in_sock, (void*)&a, sizeof(a), MSG_DONTWAIT, (const sockaddr *)&_my_in_addr, sizeof(_my_in_addr));
+	  //   printf("HARDCODE send size %d a = %d\n",size,a);
+	    // int b;
+	    // size =  recv(_my_sitl_in_sock, &b, sizeof(b), MSG_DONTWAIT);
+	   //  printf("HARDCODE recived size %d b = %d\n",size,b);
 }
 
 // generate a random float between -1 and 1
