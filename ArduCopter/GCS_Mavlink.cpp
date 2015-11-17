@@ -313,6 +313,7 @@ void NOINLINE Copter::send_nav_controller_output(mavlink_channel_t chan)
 void NOINLINE Copter::send_simstate(mavlink_channel_t chan)
 {
 #if CONFIG_HAL_BOARD == HAL_BOARD_SITL
+	printf("HARDCODE send sim state\n");
     sitl.simstate_send(chan);
 #endif
 }
@@ -530,6 +531,7 @@ bool GCS_MAVLINK::try_send_message(enum ap_message id)
 
     switch(id) {
     case MSG_HEARTBEAT:
+    //	printf("HARDCODE try send HEARTBEAT\n");
         CHECK_PAYLOAD_SIZE(HEARTBEAT);
         copter.gcs[chan-MAVLINK_COMM_0].last_heartbeat_time = hal.scheduler->millis();
         copter.send_heartbeat(chan);
@@ -1004,11 +1006,13 @@ void GCS_MAVLINK::handleMessage(mavlink_message_t* msg)
         if(msg->sysid != copter.g.sysid_my_gcs) break;
         copter.failsafe.last_heartbeat_ms = hal.scheduler->millis();
         copter.pmTest1++;
+        printf("HARDCODE heartbeat recived\n");
         break;
     }
 
     case MAVLINK_MSG_ID_SET_MODE:       // MAV ID: 11
     {
+    	printf("HARDCODE SET mode\n");
         handle_set_mode(msg, FUNCTOR_BIND(&copter, &Copter::set_mode, bool, uint8_t));
         break;
     }
@@ -1021,6 +1025,7 @@ void GCS_MAVLINK::handleMessage(mavlink_message_t* msg)
 
     case MAVLINK_MSG_ID_PARAM_REQUEST_LIST:         // MAV ID: 21
     {
+    	printf("HARDCODE param request list\n");
         // mark the firmware version in the tlog
         send_text_P(MAV_SEVERITY_WARNING, PSTR(FIRMWARE_STRING));
 
@@ -1034,6 +1039,7 @@ void GCS_MAVLINK::handleMessage(mavlink_message_t* msg)
 
     case MAVLINK_MSG_ID_PARAM_SET:     // 23
     {
+    	printf("HARDCODE Set param\n");
         handle_param_set(msg, &copter.DataFlash);
         break;
     }
@@ -1062,6 +1068,7 @@ void GCS_MAVLINK::handleMessage(mavlink_message_t* msg)
 
     case MAVLINK_MSG_ID_MISSION_SET_CURRENT:    // MAV ID: 41
     {
+    	printf("HARDCODE mission set current\n");
         handle_mission_set_current(copter.mission, msg);
         break;
     }
@@ -1069,6 +1076,7 @@ void GCS_MAVLINK::handleMessage(mavlink_message_t* msg)
     // GCS request the full list of commands, we return just the number and leave the GCS to then request each command individually
     case MAVLINK_MSG_ID_MISSION_REQUEST_LIST:       // MAV ID: 43
     {
+    	printf("HARDCODE mission request list\n");
         handle_mission_request_list(copter.mission, msg);
         break;
     }
@@ -1089,6 +1097,7 @@ void GCS_MAVLINK::handleMessage(mavlink_message_t* msg)
 
     case MAVLINK_MSG_ID_REQUEST_DATA_STREAM:    // MAV ID: 66
     {
+    	printf("HARDCODE Data stream\n");
         handle_request_data_stream(msg, false);
         break;
     }
@@ -1132,6 +1141,7 @@ void GCS_MAVLINK::handleMessage(mavlink_message_t* msg)
     case MAVLINK_MSG_ID_COMMAND_LONG:       // MAV ID: 76
     {
         // decode packet
+    	printf("HARDCODE Long command recived\n");
         mavlink_command_long_t packet;
         mavlink_msg_command_long_decode(msg, &packet);
 
@@ -1372,6 +1382,7 @@ void GCS_MAVLINK::handleMessage(mavlink_message_t* msg)
             break;
 
         case MAV_CMD_COMPONENT_ARM_DISARM:
+        	printf("HARDCODE Arm received\n");
             if (is_equal(packet.param1,1.0f)) {
                 // attempt to arm and return success or failure
                 if (copter.init_arm_motors(true)) {
@@ -1561,6 +1572,7 @@ void GCS_MAVLINK::handleMessage(mavlink_message_t* msg)
 
     case MAVLINK_MSG_ID_SET_POSITION_TARGET_LOCAL_NED:     // MAV ID: 84
     {
+    	printf("HARDCODE target NED received\n");
         // decode packet
         mavlink_set_position_target_local_ned_t packet;
         mavlink_msg_set_position_target_local_ned_decode(msg, &packet);
@@ -1637,6 +1649,7 @@ void GCS_MAVLINK::handleMessage(mavlink_message_t* msg)
 
     case MAVLINK_MSG_ID_SET_POSITION_TARGET_GLOBAL_INT:    // MAV ID: 86
     {
+    	printf("HARDCODE target GLOBAL received\n");
         // decode packet
         mavlink_set_position_target_global_int_t packet;
         mavlink_msg_set_position_target_global_int_decode(msg, &packet);

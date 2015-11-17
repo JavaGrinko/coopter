@@ -76,7 +76,7 @@ void AP_Baro::setHIL(uint8_t instance, float pressure, float temperature)
 // Read the sensor
 void AP_Baro_HIL::update(void)
 {
-	printf("HARDCODE: IN BARO UPDATE\n");
+	//printf("HARDCODE: IN BARO UPDATE\n");
     float pressure = 0.0;
     float temperature = 0.0;
     float pressure_sum = 0.0;

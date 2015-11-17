@@ -236,10 +236,10 @@ void Copter::init_ardupilot()
     while (barometer.get_last_update() == 0) {
         // the barometer begins updating when we get the first
         // HIL_STATE message
-    	printf("HARDCODE baro last upd = %d\n",barometer.get_last_update());
+    //	printf("HARDCODE baro last upd = %d\n",barometer.get_last_update());
         gcs_send_text_P(MAV_SEVERITY_WARNING, PSTR("Waiting for first HIL_STATE message"));
         delay(1000);
-        printf("in while HARDCODE");
+    //    printf("in while HARDCODE");
     }
     printf("after while HARDCODE");
     ins.set_hil_mode();

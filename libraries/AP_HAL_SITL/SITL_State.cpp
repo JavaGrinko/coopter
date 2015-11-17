@@ -179,7 +179,7 @@ void SITL_State::_fdm_input_step(void)
     static uint32_t last_pwm_input = 0;
     fd_set fds;
     struct timeval tv;
-    printf("HARDCODE FDM STEP \n");
+ //   printf("HARDCODE FDM STEP \n");
     if (sitl_model != NULL) {
         _fdm_input_local();
     } else {
@@ -363,13 +363,13 @@ void SITL_State::_fdm_input_local(void)
      //   int size = recvfrom(_my_sitl_in_sock,&a,sizeof(a),0,(sockaddr *) &_my_out_addr,&len);
        // int size = recv(_my_sitl_in_sock,&control,sizeof(control),MSG_DONTWAIT);
       //  printf("HARDCODE recive %d a = %d adr %s:%d\n",size,a,inet_ntoa(_my_out_addr.sin_addr),ntohs(_my_out_addr.sin_port));
-         int b;
-         int size = 0;// recv(_my_sitl_in_sock, &b, sizeof(b), MSG_DONTWAIT);
-         printf("HARDCODE recived size %d b = %d\n",size,b);
-         b = 0;
-         socklen_t len = sizeof(_my_in_addr);
-         size = recvfrom(_my_sitl_in_sock,&b,sizeof(b),MSG_DONTWAIT,(struct sockaddr *)&_my_in_addr, &len);
-         printf("HARDCODE recived size %d b = %d\n",size,b);
+     //    int b;
+    //     int size = 0;// recv(_my_sitl_in_sock, &b, sizeof(b), MSG_DONTWAIT);
+      //   printf("HARDCODE recived size %d b = %d\n",size,b);
+     //    b = 0;
+     //    socklen_t len = sizeof(_my_in_addr);
+     //    size = recvfrom(_my_sitl_in_sock,&b,sizeof(b),MSG_DONTWAIT,(struct sockaddr *)&_my_in_addr, &len);
+      //   printf("HARDCODE recived size %d b = %d\n",size,b);
 
   //  printf("HARDCODE my_fdm = %d \n %d \n %f,%f,%f \n % f\n %f,%f,%f\n %f,%f,%f\n %f,%f,%f\n %f,%f,%f\n  %f,%f,%f\n %f\n ",size,
   //  		my_fdm.timestamp_us,
@@ -612,11 +612,11 @@ void SITL_State::_send_servos_output(Aircraft::sitl_input &input)
 
 	     for (int i = 0 ; i < SITL_NUM_CHANNELS; i++)
 	     {
-	    	 printf("HARDCODE control pwm %d = %d\n",i,control.pwm[i]);
+	 //   	 printf("HARDCODE control pwm %d = %d\n",i,control.pwm[i]);
 	     }
-	     printf("HARDCODE control speed = %d\n",control.speed);
-	     printf("HARDCODE control direction = %d\n",control.direction);
-	     printf("HARDCODE control turbulance = %d\n",control.turbulance);
+	  //   printf("HARDCODE control speed = %d\n",control.speed);
+	 //    printf("HARDCODE control direction = %d\n",control.direction);
+	  //   printf("HARDCODE control turbulance = %d\n",control.turbulance);
 
 	     int a = 10;
 	  //   size = sendto(_my_sitl_in_sock, (void*)&a, sizeof(a), MSG_DONTWAIT, (const sockaddr *)&_my_in_addr, sizeof(_my_in_addr));

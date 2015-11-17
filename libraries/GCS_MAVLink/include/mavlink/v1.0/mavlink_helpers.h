@@ -5,6 +5,7 @@
 #include "checksum.h"
 #include "mavlink_types.h"
 #include "mavlink_conversions.h"
+#include "stdio.h"
 
 #ifndef MAVLINK_HELPER
 #define MAVLINK_HELPER
@@ -139,8 +140,19 @@ MAVLINK_HELPER void _mav_finalize_message_chan_send(mavlink_channel_t chan, uint
 	crc_accumulate(crc_extra, &checksum);
 #endif
 	ck[0] = (uint8_t)(checksum & 0xFF);
-	ck[1] = (uint8_t)(checksum >> 8);
+	ck[1] = (uint8_t)(checksum >> 8); // HARDCODE œŒ—€À ¿
+//	printf("HARDCODE 0 - %02X ",buf[0]);
+//	printf("1 - %02X ",buf[1]);
+//	printf("2 - %02X ",buf[2]);
+//	printf("3 - %02X ",buf[3]);
+//	printf("4 - %02X ",buf[4]);
+//	printf("5 - %02X ",buf[5]);
 
+//	for (int i = 0; i < length; i++){
+//		printf("packet %d - %02X ",i,packet[i]);
+//	}
+//	printf(" check sum %02X %02X\n",ck[0],ck[1]);
+//	printf("==============================\n");
 	MAVLINK_START_UART_SEND(chan, MAVLINK_NUM_NON_PAYLOAD_BYTES + (uint16_t)length);
 	_mavlink_send_uart(chan, (const char *)buf, MAVLINK_NUM_HEADER_BYTES);
 	_mavlink_send_uart(chan, packet, length);
@@ -155,7 +167,7 @@ MAVLINK_HELPER void _mav_finalize_message_chan_send(mavlink_channel_t chan, uint
 MAVLINK_HELPER void _mavlink_resend_uart(mavlink_channel_t chan, const mavlink_message_t *msg)
 {
 	uint8_t ck[2];
-
+	printf("HARDCODE resend\n");
 	ck[0] = (uint8_t)(msg->checksum & 0xFF);
 	ck[1] = (uint8_t)(msg->checksum >> 8);
 	// XXX use the right sequence here

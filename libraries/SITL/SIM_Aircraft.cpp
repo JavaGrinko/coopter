@@ -101,7 +101,7 @@ bool Aircraft::on_ground(const Vector3f &pos) const
 void Aircraft::update_position(void)
 {
     float bearing = degrees(atan2f(position.y, position.x));
-    float distance = 0;//sqrtf(sq(position.x) + sq(position.y));
+    float distance = sqrtf(sq(position.x) + sq(position.y));
 
     location = home;
     location_update(location, bearing, distance);

@@ -22,7 +22,7 @@ void Copter::read_barometer(void)
     }
     baro_alt = barometer.get_altitude() * 100.0f;
     baro_climbrate = barometer.get_climb_rate() * 100.0f;
-    printf("HARDCODE: baro alt = %d \n",baro_alt);
+   // printf("HARDCODE: baro alt = %d \n",baro_alt);
     motors.set_air_density_ratio(barometer.get_air_density_ratio());
 }
 

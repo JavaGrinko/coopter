@@ -144,6 +144,7 @@ void SITL_State::_parse_command_line(int argc, char * const argv[])
             _rcout_port += _instance * 10;
             _simin_port += _instance * 10;
             _my_in_port += _instance * 10;
+            _my_out_port += _instance * 10;
         }
         break;
         case 'P':
